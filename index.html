@@ -1,640 +1,599 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>AlgoBot — Algorithm Explainer</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <style>
-  /* ── TOKENS ─────────────────────────────────── */
-  :root {
-    --bg:        #F8FAFE;
-    --surface:   #EFF4FB;
-    --border:    #DFE9F9;
-    --accent:    #AFCAF5;
-    --accent-md: #6FA8EC;
-    --accent-dk: #2E7DE9;
-    --text:      #1A2640;
-    --text-muted:#6B80A0;
-    --mono:      'DM Mono', monospace;
-    --serif:     'DM Serif Display', serif;
-    --sans:      'Outfit', sans-serif;
-    --radius:    16px;
-    --shadow:    0 2px 20px rgba(46,125,233,0.08);
-    --shadow-lg: 0 8px 40px rgba(46,125,233,0.13);
-  }
+/* ── TOKENS ──────────────────────────────────────────── */
+:root {
+  --bg:        #F8FAFE;
+  --surface:   #EFF4FB;
+  --border:    #DFE9F9;
+  --accent:    #AFCAF5;
+  --accent-md: #6FA8EC;
+  --accent-dk: #2E7DE9;
+  --text:      #1A2640;
+  --muted:     #6B80A0;
+  --mono:      'DM Mono', monospace;
+  --serif:     'DM Serif Display', serif;
+  --sans:      'Outfit', sans-serif;
+  --r:         14px;
+  --shadow:    0 2px 16px rgba(46,125,233,0.08);
+}
 
-  /* ── RESET ───────────────────────────────────── */
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
-  body {
-    font-family: var(--sans);
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-  }
+/* ── RESET ───────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+}
 
-  /* ── HEADER ──────────────────────────────────── */
-  header {
-    padding: 28px 48px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    border-bottom: 1px solid var(--border);
-    background: #fff;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  .logo-mark {
-    width: 40px; height: 40px;
-    background: var(--accent-dk);
-    border-radius: 12px;
-    display: grid; place-items: center;
-    font-size: 20px;
-    flex-shrink: 0;
-    box-shadow: 0 4px 12px rgba(46,125,233,0.3);
-  }
-  header h1 {
-    font-family: var(--serif);
-    font-size: 1.5rem;
-    color: var(--text);
-    letter-spacing: -0.02em;
-  }
-  header span {
-    font-family: var(--sans);
-    font-size: 0.75rem;
-    font-weight: 500;
-    color: var(--text-muted);
-    margin-left: 4px;
-  }
-  .header-right {
-    margin-left: auto;
-    font-size: 0.78rem;
-    color: var(--text-muted);
-    background: var(--surface);
-    padding: 6px 14px;
-    border-radius: 20px;
-    border: 1px solid var(--border);
-    font-weight: 500;
-  }
+/* ── HEADER ──────────────────────────────────────────── */
+header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 28px;
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  z-index: 10;
+}
+.logo {
+  width: 36px; height: 36px;
+  background: var(--accent-dk);
+  border-radius: 10px;
+  display: grid; place-items: center;
+  font-size: 18px;
+  box-shadow: 0 3px 10px rgba(46,125,233,0.3);
+  flex-shrink: 0;
+}
+header h1 {
+  font-family: var(--serif);
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+}
+header h1 span { font-family: var(--sans); font-size: 0.72rem; font-weight: 400; color: var(--muted); margin-left: 6px; }
+.badge {
+  margin-left: auto;
+  font-size: 0.72rem; font-weight: 500;
+  color: var(--muted);
+  background: var(--surface);
+  padding: 5px 12px;
+  border-radius: 99px;
+  border: 1px solid var(--border);
+}
 
-  /* ── LAYOUT ──────────────────────────────────── */
-  main {
-    flex: 1;
-    max-width: 860px;
-    margin: 0 auto;
-    width: 100%;
-    padding: 48px 24px 80px;
-  }
+/* ── CHAT CONTAINER ──────────────────────────────────── */
+#chatWrap {
+  flex: 1;
+  overflow-y: auto;
+  padding: 32px 0 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.inner { max-width: 760px; margin: 0 auto; width: 100%; padding: 0 20px; }
 
-  /* ── HERO ────────────────────────────────────── */
-  .hero {
-    text-align: center;
-    margin-bottom: 48px;
-    animation: fadeUp 0.6s ease both;
-  }
-  .hero h2 {
-    font-family: var(--serif);
-    font-size: clamp(2rem, 5vw, 3rem);
-    color: var(--text);
-    line-height: 1.15;
-    letter-spacing: -0.03em;
-    margin-bottom: 12px;
-  }
-  .hero h2 em {
-    color: var(--accent-dk);
-    font-style: italic;
-  }
-  .hero p {
-    color: var(--text-muted);
-    font-size: 1rem;
-    font-weight: 300;
-    max-width: 480px;
-    margin: 0 auto;
-    line-height: 1.6;
-  }
+/* ── WELCOME ─────────────────────────────────────────── */
+#welcome {
+  text-align: center;
+  padding: 40px 20px;
+  animation: fadeUp .5s ease both;
+}
+#welcome h2 {
+  font-family: var(--serif);
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  margin-bottom: 10px;
+}
+#welcome h2 em { color: var(--accent-dk); font-style: italic; }
+#welcome p { color: var(--muted); font-weight: 300; font-size: .95rem; margin-bottom: 24px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.chip {
+  padding: 7px 16px;
+  border-radius: 99px;
+  border: 1.5px solid var(--border);
+  background: #fff;
+  font-size: .8rem; font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all .18s;
+}
+.chip:hover { border-color: var(--accent-md); color: var(--accent-dk); background: var(--surface); }
 
-  /* ── SEARCH BAR ──────────────────────────────── */
-  .search-wrap {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 40px;
-    animation: fadeUp 0.6s 0.1s ease both;
-  }
-  .search-wrap input {
-    flex: 1;
-    padding: 16px 22px;
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius);
-    font-family: var(--sans);
-    font-size: 0.97rem;
-    font-weight: 400;
-    background: #fff;
-    color: var(--text);
-    outline: none;
-    transition: border 0.2s, box-shadow 0.2s;
-  }
-  .search-wrap input::placeholder { color: var(--text-muted); }
-  .search-wrap input:focus {
-    border-color: var(--accent-md);
-    box-shadow: 0 0 0 4px rgba(111,168,236,0.15);
-  }
-  .search-wrap button {
-    padding: 16px 28px;
-    background: var(--accent-dk);
-    color: #fff;
-    border: none;
-    border-radius: var(--radius);
-    font-family: var(--sans);
-    font-size: 0.95rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
-    box-shadow: 0 4px 14px rgba(46,125,233,0.3);
-    white-space: nowrap;
-  }
-  .search-wrap button:hover { background: #2066cc; box-shadow: 0 6px 20px rgba(46,125,233,0.4); }
-  .search-wrap button:active { transform: scale(0.97); }
-  .search-wrap button:disabled { background: var(--accent); box-shadow: none; cursor: not-allowed; }
+/* ── MESSAGE ROWS ────────────────────────────────────── */
+.msg-row {
+  display: flex;
+  gap: 12px;
+  animation: fadeUp .35s ease both;
+}
+.msg-row.user { flex-direction: row-reverse; }
 
-  /* ── CHIPS ───────────────────────────────────── */
-  .chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 48px;
-    animation: fadeUp 0.6s 0.2s ease both;
-  }
-  .chip {
-    padding: 7px 16px;
-    border-radius: 99px;
-    border: 1.5px solid var(--border);
-    background: #fff;
-    font-size: 0.82rem;
-    font-weight: 500;
-    color: var(--text-muted);
-    cursor: pointer;
-    transition: all 0.18s;
-  }
-  .chip:hover {
-    border-color: var(--accent-md);
-    color: var(--accent-dk);
-    background: var(--surface);
-  }
+.avatar {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 14px;
+  flex-shrink: 0;
+  align-self: flex-end;
+}
+.avatar.bot  { background: var(--accent-dk); color: #fff; box-shadow: 0 2px 8px rgba(46,125,233,.3); }
+.avatar.user { background: var(--surface); border: 1.5px solid var(--border); }
 
-  /* ── RESPONSE AREA ───────────────────────────── */
-  #response { display: none; }
-  #response.visible { display: block; }
+/* ── USER BUBBLE ─────────────────────────────────────── */
+.user-bubble {
+  background: var(--accent-dk);
+  color: #fff;
+  padding: 12px 18px;
+  border-radius: 18px 18px 4px 18px;
+  font-size: .92rem;
+  font-weight: 400;
+  max-width: 70%;
+  line-height: 1.5;
+  box-shadow: 0 3px 12px rgba(46,125,233,.25);
+}
 
-  /* ── SKELETON ────────────────────────────────── */
-  .skeleton-wrap { display: none; margin-bottom: 32px; }
-  .skeleton-wrap.active { display: block; }
-  .skeleton-block {
-    background: linear-gradient(90deg, var(--surface) 25%, var(--border) 50%, var(--surface) 75%);
-    background-size: 200% 100%;
-    animation: shimmer 1.4s infinite;
-    border-radius: 10px;
-    margin-bottom: 12px;
-  }
-  @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+/* ── BOT BUBBLE (follow-up) ──────────────────────────── */
+.bot-bubble {
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: 18px 18px 18px 4px;
+  padding: 14px 20px;
+  font-size: .92rem;
+  line-height: 1.7;
+  color: var(--text);
+  max-width: 80%;
+  width: fit-content;
+  word-break: break-word;
+  box-shadow: var(--shadow);
+  white-space: pre-wrap;
+  font-weight: 300;
+}
+.bot-bubble pre {
+  font-family: var(--mono);
+  font-size: .8rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-top: 10px;
+  overflow-x: auto;
+  white-space: pre;
+}
 
-  /* ── SECTION LABEL ───────────────────────────── */
-  .section-label {
-    font-size: 0.72rem;
-    font-weight: 600;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    margin-bottom: 12px;
-  }
+.msg-content{
+  max-width: calc(100% - 44px);
+  min-width: 0;
+}
 
-  /* ── THEORY CARD ─────────────────────────────── */
-  .theory-card {
-    background: #fff;
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius);
-    padding: 28px 32px;
-    margin-bottom: 28px;
-    box-shadow: var(--shadow);
-    animation: fadeUp 0.5s ease both;
-  }
-  .theory-card h3 {
-    font-family: var(--serif);
-    font-size: 1.4rem;
-    color: var(--text);
-    margin-bottom: 14px;
-    letter-spacing: -0.02em;
-  }
-  .theory-card p {
-    color: var(--text-muted);
-    line-height: 1.75;
-    font-size: 0.95rem;
-    font-weight: 300;
-  }
-  .example-pill {
-    display: inline-block;
-    margin-top: 16px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 99px;
-    padding: 6px 16px;
-    font-size: 0.83rem;
-    color: var(--accent-dk);
-    font-weight: 500;
-  }
+/* ── EXPLANATION CARD ────────────────────────────────── */
+.expl-card {
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: 18px 18px 18px 4px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  max-width: 92%;
+}
 
-  /* ── STEPS ───────────────────────────────────── */
-  .steps-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 16px;
-  }
-  .steps-progress {
-    font-size: 0.82rem;
-    font-weight: 500;
-    color: var(--text-muted);
-    background: var(--surface);
-    padding: 4px 12px;
-    border-radius: 99px;
-    border: 1px solid var(--border);
-  }
+/* theory section */
+.expl-theory {
+  padding: 22px 26px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.expl-algo-name {
+  font-family: var(--serif);
+  font-size: 1.3rem;
+  letter-spacing: -.02em;
+  margin-bottom: 10px;
+}
+.expl-theory p { color: var(--muted); font-size: .88rem; line-height: 1.75; font-weight: 300; }
+.example-pill {
+  display: inline-block;
+  margin-top: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  padding: 4px 14px;
+  font-size: .78rem;
+  color: var(--accent-dk);
+  font-weight: 500;
+}
 
-  .steps-list { display: flex; flex-direction: column; gap: 16px; margin-bottom: 28px; }
+/* steps */
+.expl-steps { padding: 16px 26px; border-bottom: 1px solid var(--border); }
+.steps-lbl {
+  font-size: .68rem; font-weight: 600;
+  letter-spacing: .1em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 12px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.steps-counter { font-size: .75rem; font-weight: 500; background: var(--surface); padding: 3px 10px; border-radius: 99px; border: 1px solid var(--border); }
 
-  .step-card {
-    background: #fff;
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius);
-    overflow: hidden;
-    box-shadow: var(--shadow);
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.45s ease, transform 0.45s ease, border-color 0.2s;
-  }
-  .step-card.visible { opacity: 1; transform: translateY(0); }
-  .step-card:hover { border-color: var(--accent); }
+.step-item {
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 10px;
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity .4s ease, transform .4s ease;
+}
+.step-item:last-child { margin-bottom: 0; }
+.step-item.show { opacity: 1; transform: translateY(0); }
 
-  .step-header {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 18px 24px;
-    border-bottom: 1px solid var(--border);
-    background: var(--surface);
-  }
-  .step-num {
-    width: 30px; height: 30px;
-    background: var(--accent-dk);
-    color: #fff;
-    border-radius: 50%;
-    display: grid; place-items: center;
-    font-size: 0.78rem;
-    font-weight: 700;
-    flex-shrink: 0;
-    font-family: var(--mono);
-  }
-  .step-title {
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: var(--text);
-  }
+.step-hdr {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.step-n {
+  width: 24px; height: 24px;
+  background: var(--accent-dk); color: #fff;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: .72rem; font-weight: 700;
+  font-family: var(--mono); flex-shrink: 0;
+}
+.step-ttl { font-size: .88rem; font-weight: 600; }
 
-  .step-body { padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; }
+.step-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
+.vis-lbl { font-size: .65rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+.vis-block {
+  font-family: var(--mono); font-size: .78rem;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 12px 14px;
+  white-space: pre; overflow-x: auto; line-height: 1.6;
+}
+.step-expl { font-size: .85rem; color: var(--muted); line-height: 1.7; font-weight: 300; }
 
-  .visual-block {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 16px 20px;
-    font-family: var(--mono);
-    font-size: 0.82rem;
-    line-height: 1.7;
-    color: var(--text);
-    white-space: pre;
-    overflow-x: auto;
-  }
-  .visual-label {
-    font-size: 0.7rem;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    margin-bottom: 8px;
-  }
-  .expl-text {
-    font-size: 0.9rem;
-    color: var(--text-muted);
-    line-height: 1.75;
-    font-weight: 300;
-  }
+/* summary */
+.expl-summary {
+  background: var(--accent-dk);
+  color: #fff;
+  padding: 18px 26px;
+  opacity: 0;
+  transition: opacity .5s ease;
+}
+.expl-summary.show { opacity: 1; }
+.expl-summary h4 { font-family: var(--serif); font-size: 1rem; margin-bottom: 8px; }
+.expl-summary p { font-size: .85rem; line-height: 1.7; opacity: .88; font-weight: 300; }
 
-  /* ── SUMMARY CARD ────────────────────────────── */
-  .summary-card {
-    background: var(--accent-dk);
-    border-radius: var(--radius);
-    padding: 28px 32px;
-    color: #fff;
-    margin-bottom: 48px;
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.5s ease, transform 0.5s ease;
-    box-shadow: 0 8px 30px rgba(46,125,233,0.25);
-  }
-  .summary-card.visible { opacity: 1; transform: translateY(0); }
-  .summary-card h3 {
-    font-family: var(--serif);
-    font-size: 1.2rem;
-    margin-bottom: 12px;
-    letter-spacing: -0.02em;
-  }
-  .summary-card p {
-    font-size: 0.92rem;
-    line-height: 1.75;
-    opacity: 0.88;
-    font-weight: 300;
-  }
+/* ── TYPING INDICATOR ────────────────────────────────── */
+.typing { display: flex; align-items: center; gap: 5px; padding: 14px 18px; }
+.dot { width: 7px; height: 7px; background: var(--accent-md); border-radius: 50%; animation: bounce .9s infinite; }
+.dot:nth-child(2) { animation-delay: .15s; }
+.dot:nth-child(3) { animation-delay: .30s; }
+@keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-6px)} }
 
-  /* ── ANOTHER BTN ─────────────────────────────── */
-  .ask-another {
-    text-align: center;
-    opacity: 0;
-    transition: opacity 0.4s ease;
-  }
-  .ask-another.visible { opacity: 1; }
-  .ask-another button {
-    padding: 13px 30px;
-    border: 1.5px solid var(--border);
-    background: #fff;
-    border-radius: 99px;
-    font-family: var(--sans);
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--text);
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .ask-another button:hover {
-    border-color: var(--accent-md);
-    color: var(--accent-dk);
-    box-shadow: var(--shadow);
-  }
+/* ── INPUT BAR ───────────────────────────────────────── */
+#inputBar {
+  flex-shrink: 0;
+  background: #fff;
+  border-top: 1px solid var(--border);
+  padding: 14px 20px;
+}
+.input-inner {
+  max-width: 760px; margin: 0 auto;
+  display: flex; gap: 10px; align-items: flex-end;
+}
+#msgInput {
+  flex: 1;
+  padding: 13px 18px;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  font-family: var(--sans);
+  font-size: .93rem; font-weight: 400;
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+  resize: none;
+  line-height: 1.5;
+  max-height: 120px;
+  overflow-y: auto;
+  transition: border .2s, box-shadow .2s;
+}
+#msgInput::placeholder { color: var(--muted); }
+#msgInput:focus { border-color: var(--accent-md); box-shadow: 0 0 0 3px rgba(111,168,236,.15); }
 
-  /* ── ERROR ───────────────────────────────────── */
-  .error-box {
-    background: #fff0f0;
-    border: 1.5px solid #ffc5c5;
-    border-radius: var(--radius);
-    padding: 20px 24px;
-    color: #c0392b;
-    font-size: 0.9rem;
-  }
+#sendBtn {
+  width: 46px; height: 46px;
+  background: var(--accent-dk);
+  border: none; border-radius: 12px;
+  color: #fff; font-size: 18px;
+  cursor: pointer; flex-shrink: 0;
+  display: grid; place-items: center;
+  transition: background .2s, transform .1s, box-shadow .2s;
+  box-shadow: 0 3px 10px rgba(46,125,233,.3);
+}
+#sendBtn:hover { background: #2066cc; box-shadow: 0 5px 16px rgba(46,125,233,.4); }
+#sendBtn:active { transform: scale(.94); }
+#sendBtn:disabled { background: var(--accent); box-shadow: none; cursor: not-allowed; }
 
-  /* ── ANIMATIONS ──────────────────────────────── */
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(18px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  /* ── SCROLLBAR ───────────────────────────────── */
-  ::-webkit-scrollbar { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-track { background: var(--surface); }
-  ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 99px; }
+/* ── UTILS ───────────────────────────────────────────── */
+@keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 99px; }
 </style>
 </head>
 <body>
 
 <!-- HEADER -->
 <header>
-  <div class="logo-mark">🤖</div>
+  <div class="logo">🤖</div>
   <h1>AlgoBot <span>Algorithm Explainer</span></h1>
-  <div class="header-right">Powered by LLaMA 3 · Groq</div>
+  <div class="badge">LLaMA 3 · Groq</div>
 </header>
 
-<!-- MAIN -->
-<main>
+<!-- CHAT AREA -->
+<div id="chatWrap">
+  <div class="inner">
 
-  <!-- HERO -->
-  <div class="hero">
-    <h2>Understand any algorithm,<br/><em>step by step.</em></h2>
-    <p>Type an algorithm name and watch it come to life with theory, examples, and animated visual cards.</p>
-  </div>
-
-  <!-- SEARCH -->
-  <div class="search-wrap">
-    <input type="text" id="algoInput" placeholder="e.g. Binary Search, Merge Sort, Dijkstra's..." autocomplete="off"/>
-    <button id="explainBtn" onclick="explain()">Explain →</button>
-  </div>
-
-  <!-- CHIPS -->
-  <div class="chips">
-    <div class="chip" onclick="quickExplain('Bubble Sort')">Bubble Sort</div>
-    <div class="chip" onclick="quickExplain('Binary Search')">Binary Search</div>
-    <div class="chip" onclick="quickExplain('Merge Sort')">Merge Sort</div>
-    <div class="chip" onclick="quickExplain('BFS')">BFS</div>
-    <div class="chip" onclick="quickExplain('DFS')">DFS</div>
-    <div class="chip" onclick="quickExplain('Dijkstra')">Dijkstra</div>
-    <div class="chip" onclick="quickExplain('Quick Sort')">Quick Sort</div>
-    <div class="chip" onclick="quickExplain('Dynamic Programming')">Dynamic Programming</div>
-    <div class="chip" onclick="quickExplain('Binary Tree Inorder Traversal')">Inorder Traversal</div>
-  </div>
-
-  <!-- SKELETON -->
-  <div class="skeleton-wrap" id="skeleton">
-    <div class="skeleton-block" style="height:140px; margin-bottom:20px;"></div>
-    <div class="skeleton-block" style="height:100px; margin-bottom:20px;"></div>
-    <div class="skeleton-block" style="height:120px;"></div>
-  </div>
-
-  <!-- RESPONSE -->
-  <div id="response">
-
-    <!-- THEORY -->
-    <div class="section-label">Theory</div>
-    <div class="theory-card" id="theoryCard">
-      <h3 id="algoTitle"></h3>
-      <p id="theoryText"></p>
-      <div class="example-pill" id="examplePill"></div>
-    </div>
-
-    <!-- STEPS -->
-    <div class="steps-header">
-      <div class="section-label" style="margin:0">Step-by-step walkthrough</div>
-      <div class="steps-progress" id="stepsProgress"></div>
-    </div>
-    <div class="steps-list" id="stepsList"></div>
-
-    <!-- SUMMARY -->
-    <div class="section-label">Summary</div>
-    <div class="summary-card" id="summaryCard">
-      <h3>Key Takeaways</h3>
-      <p id="summaryText"></p>
-    </div>
-
-    <!-- ASK ANOTHER -->
-    <div class="ask-another" id="askAnother">
-      <button onclick="reset()">← Ask about another algorithm</button>
+    <!-- WELCOME -->
+    <div id="welcome">
+      <h2>Learn any algorithm,<br/><em>ask anything.</em></h2>
+      <p>Ask for an explanation, then ask follow-up questions freely.<br/>Everything stays in one conversation.</p>
+      <div class="chips">
+        <div class="chip" onclick="quick('Explain Bubble Sort')">Bubble Sort</div>
+        <div class="chip" onclick="quick('Explain Binary Search')">Binary Search</div>
+        <div class="chip" onclick="quick('Explain Merge Sort')">Merge Sort</div>
+        <div class="chip" onclick="quick('Explain BFS')">BFS</div>
+        <div class="chip" onclick="quick('Explain Dijkstra')">Dijkstra</div>
+        <div class="chip" onclick="quick('Explain Quick Sort')">Quick Sort</div>
+        <div class="chip" onclick="quick('Explain Dynamic Programming')">Dynamic Programming</div>
+        <div class="chip" onclick="quick('Explain Inorder Tree Traversal')">Inorder Traversal</div>
+      </div>
     </div>
 
   </div>
+</div>
 
-  <!-- ERROR -->
-  <div id="errorBox" class="error-box" style="display:none;"></div>
-
-</main>
+<!-- INPUT BAR -->
+<div id="inputBar">
+  <div class="input-inner">
+    <textarea id="msgInput" rows="1" placeholder="Ask about an algorithm, or ask a follow-up question…"></textarea>
+    <button id="sendBtn" onclick="send()">➤</button>
+  </div>
+</div>
 
 <script>
-  const history = [];
-  let stepTimer = null;
+const history = [];
+let busy = false;
 
-  const $ = id => document.getElementById(id);
+// ── AUTO-RESIZE TEXTAREA ────────────────────────────────
+const inp = document.getElementById('msgInput');
+inp.addEventListener('input', () => {
+  inp.style.height = 'auto';
+  inp.style.height = Math.min(inp.scrollHeight, 120) + 'px';
+});
+inp.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+});
 
-  // Enter key support
-  $('algoInput').addEventListener('keydown', e => {
-    if (e.key === 'Enter') explain();
-  });
+function quick(text) {
+  inp.value = text;
+  send();
+}
 
-  function quickExplain(algo) {
-    $('algoInput').value = algo;
-    explain();
-  }
+// ── SCROLL TO BOTTOM ────────────────────────────────────
+function scrollBottom() {
+  const wrap = document.getElementById('chatWrap');
+  wrap.scrollTop = wrap.scrollHeight;
+}
 
-  function showSkeleton(on) {
-    $('skeleton').classList.toggle('active', on);
-  }
+// ── ADD MESSAGE ROW ─────────────────────────────────────
+function addRow(role) {
+  const wrap = document.getElementById('chatWrap');
+  const inner = document.createElement('div');
+  inner.className = 'inner';
 
-  function reset() {
-    if (stepTimer) clearTimeout(stepTimer);
-    $('response').classList.remove('visible');
-    $('response').style.display = 'none';
-    $('errorBox').style.display = 'none';
-    $('algoInput').value = '';
-    $('algoInput').focus();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
+  const row = document.createElement('div');
+  row.className = `msg-row ${role}`;
 
-  async function explain() {
-    const algo = $('algoInput').value.trim();
-    if (!algo) return;
+  const av = document.createElement('div');
+  av.className = `avatar ${role}`;
+  av.textContent = role === 'bot' ? '🤖' : '👤';
 
-    if (stepTimer) clearTimeout(stepTimer);
+  const content = document.createElement('div');
+  content.className = 'msg-content';
 
-    // Reset UI
-    $('response').classList.remove('visible');
-    $('response').style.display = 'none';
-    $('errorBox').style.display = 'none';
-    $('stepsList').innerHTML = '';
-    $('summaryCard').classList.remove('visible');
-    $('askAnother').classList.remove('visible');
+  row.appendChild(av);
+  row.appendChild(content);
+  inner.appendChild(row);
+  wrap.appendChild(inner);
+  scrollBottom();
+  return content;
+}
 
-    // Loading state
-    showSkeleton(true);
-    $('explainBtn').disabled = true;
-    $('explainBtn').textContent = 'Thinking…';
+// ── TYPING INDICATOR ────────────────────────────────────
+function showTyping() {
+  const slot = addRow('bot');
+  const bubble = document.createElement('div');
+  bubble.className = 'bot-bubble typing-wrap';
+  bubble.innerHTML = `<div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
+  slot.appendChild(bubble);
+  scrollBottom();
+  return bubble;
+}
 
-    try {
-      const res = await fetch('/explain', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ algorithm: algo, history })
-      });
+// ── RENDER USER BUBBLE ──────────────────────────────────
+function renderUser(text) {
+  const slot = addRow('user');
+  const bub = document.createElement('div');
+  bub.className = 'user-bubble';
+  bub.textContent = text;
+  slot.appendChild(bub);
+  scrollBottom();
+}
 
-      const json = await res.json();
-      showSkeleton(false);
+// ── RENDER FOLLOW-UP BOT REPLY ──────────────────────────
+function renderFollowup(text, target) {
+  target.className = 'bot-bubble';
+  // detect ascii blocks (lines with [] or -> or | patterns)
+  const lines = text.split('\n');
+  let html = '', inBlock = false, block = '';
 
-      if (!res.ok || json.error) {
-        $('errorBox').textContent = '⚠ ' + (json.error || 'Something went wrong.');
-        $('errorBox').style.display = 'block';
-        return;
+  for (const line of lines) {
+    const isCode = /[\[\]|+\-]{2,}|->|<-|\^/.test(line) && line.trim().length > 0;
+    if (isCode) {
+      if (!inBlock) { inBlock = true; block = ''; }
+      block += escHtml(line) + '\n';
+    } else {
+      if (inBlock) {
+        html += `<pre>${block.trimEnd()}</pre>`;
+        inBlock = false; block = '';
       }
-
-      // Save to history
-      history.push({ role: 'user', content: `Please explain: ${algo}` });
-      history.push({ role: 'assistant', content: json.raw });
-
-      renderResponse(algo, json.data);
-
-    } catch (err) {
-      showSkeleton(false);
-      $('errorBox').textContent = '⚠ Could not connect to server. Is app.py running?';
-      $('errorBox').style.display = 'block';
-    } finally {
-      $('explainBtn').disabled = false;
-      $('explainBtn').textContent = 'Explain →';
+      html += escHtml(line) + '\n';
     }
   }
+  if (inBlock) html += `<pre>${block.trimEnd()}</pre>`;
+  target.innerHTML = html;
+  scrollBottom();
+}
 
-  function renderResponse(algo, data) {
-    // Theory
-    $('algoTitle').textContent = algo;
-    $('theoryText').textContent = data.theory || '';
-    $('examplePill').textContent = data.example_intro ? '🎯 ' + data.example_intro : '';
-    $('examplePill').style.display = data.example_intro ? 'inline-block' : 'none';
+// ── RENDER EXPLANATION CARD ─────────────────────────────
+function renderExplanation(data, algo, target) {
+  target.className = '';
+  const card = document.createElement('div');
+  card.className = 'expl-card';
 
-    // Steps count
-    const total = data.steps.length;
-    $('stepsProgress').textContent = `0 / ${total} steps`;
+  // Theory
+  const theory = document.createElement('div');
+  theory.className = 'expl-theory';
+  theory.innerHTML = `
+    <div class="expl-algo-name">${escHtml(algo)}</div>
+    <p>${escHtml(data.theory)}</p>
+    ${data.example_intro ? `<div class="example-pill">🎯 ${escHtml(data.example_intro)}</div>` : ''}
+  `;
+  card.appendChild(theory);
 
-    // Build step cards (hidden initially)
-    data.steps.forEach((step, i) => {
-      const card = document.createElement('div');
-      card.className = 'step-card';
-      card.id = `step-${i}`;
-      card.innerHTML = `
-        <div class="step-header">
-          <div class="step-num">${i + 1}</div>
-          <div class="step-title">${escHtml(step.title)}</div>
+  // Steps wrapper
+  const stepsWrap = document.createElement('div');
+  stepsWrap.className = 'expl-steps';
+  const total = data.steps.length;
+  stepsWrap.innerHTML = `
+    <div class="steps-lbl">
+      Step-by-step walkthrough
+      <span class="steps-counter" id="sc">0 / ${total}</span>
+    </div>`;
+
+  data.steps.forEach((s, i) => {
+    const item = document.createElement('div');
+    item.className = 'step-item';
+    item.id = `si-${Date.now()}-${i}`;
+    item.innerHTML = `
+      <div class="step-hdr">
+        <div class="step-n">${i+1}</div>
+        <div class="step-ttl">${escHtml(s.title)}</div>
+      </div>
+      <div class="step-body">
+        <div>
+          <div class="vis-lbl">Visual</div>
+          <div class="vis-block">${escHtml(s.visual)}</div>
         </div>
-        <div class="step-body">
-          <div>
-            <div class="visual-label">Visual</div>
-            <div class="visual-block">${escHtml(step.visual)}</div>
-          </div>
-          <div class="expl-text">${escHtml(step.explanation)}</div>
-        </div>`;
-      $('stepsList').appendChild(card);
-    });
+        <div class="step-expl">${escHtml(s.explanation)}</div>
+      </div>`;
+    stepsWrap.appendChild(item);
+  });
+  card.appendChild(stepsWrap);
 
-    // Summary
-    $('summaryText').textContent = data.summary || '';
+  // Summary
+  const sum = document.createElement('div');
+  sum.className = 'expl-summary';
+  sum.id = `sum-${Date.now()}`;
+  sum.innerHTML = `<h4>Key Takeaways</h4><p>${escHtml(data.summary)}</p>`;
+  card.appendChild(sum);
 
-    // Show response container
-    $('response').style.display = 'block';
-    $('response').classList.add('visible');
+  target.appendChild(card);
+  scrollBottom();
 
-    // Animate steps in one by one
-    animateSteps(total, 0);
+  // Animate steps in
+  const stepEls = stepsWrap.querySelectorAll('.step-item');
+  const sc      = stepsWrap.querySelector('.steps-counter');
+  let idx = 0;
+
+  function nextStep() {
+    if (idx >= stepEls.length) {
+      setTimeout(() => { sum.classList.add('show'); scrollBottom(); }, 300);
+      return;
+    }
+    setTimeout(() => {
+      stepEls[idx].classList.add('show');
+      sc.textContent = `${idx+1} / ${total}`;
+      scrollBottom();
+      idx++;
+      nextStep();
+    }, idx === 0 ? 300 : 1100);
   }
+  nextStep();
+}
 
-  function animateSteps(total, index) {
-    if (index >= total) {
-      // Show summary & button after all steps
-      setTimeout(() => {
-        $('summaryCard').classList.add('visible');
-        $('askAnother').classList.add('visible');
-        $('summaryCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }, 300);
+// ── SEND ────────────────────────────────────────────────
+async function send() {
+  if (busy) return;
+  const text = inp.value.trim();
+  if (!text) return;
+
+  // Hide welcome
+  const welcome = document.getElementById('welcome');
+  if (welcome) welcome.style.display = 'none';
+
+  inp.value = '';
+  inp.style.height = 'auto';
+
+  renderUser(text);
+  busy = true;
+  document.getElementById('sendBtn').disabled = true;
+
+  const typingBubble = showTyping();
+
+  // Save user turn
+  history.push({ role: 'user', content: text });
+
+  try {
+    const res  = await fetch('/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: text, history: history.slice(0, -1) })
+    });
+    const json = await res.json();
+
+    if (!res.ok || json.error) {
+      renderFollowup('⚠ ' + (json.error || 'Something went wrong.'), typingBubble);
       return;
     }
 
-    const card = $(`step-${index}`);
-    stepTimer = setTimeout(() => {
-      card.classList.add('visible');
-      $('stepsProgress').textContent = `${index + 1} / ${total} steps`;
-      card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      animateSteps(total, index + 1);
-    }, index === 0 ? 400 : 1200);
-  }
+    const data = json.data;
+    history.push({ role: 'assistant', content: data.raw });
 
-  function escHtml(str) {
-    return (str || '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
+    if (data.type === 'explanation') {
+      renderExplanation(data, text.replace(/explain\s+/i, ''), typingBubble);
+    } else {
+      renderFollowup(data.text, typingBubble);
+    }
+
+  } catch (e) {
+    renderFollowup('⚠ Cannot connect to server. Is app.py running?', typingBubble);
+  } finally {
+    busy = false;
+    document.getElementById('sendBtn').disabled = false;
+    inp.focus();
   }
+}
+
+function escHtml(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
 </script>
 </body>
 </html>

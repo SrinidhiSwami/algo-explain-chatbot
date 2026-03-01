@@ -1,7 +1,6 @@
 """
 Algorithm Explanation Chatbot - Flask Backend
-Run: python app.py
-Then open: http://localhost:5000
+Run: python app.py  →  open http://localhost:5000
 """
 
 from dotenv import load_dotenv
@@ -9,107 +8,120 @@ load_dotenv()
 
 from flask import Flask, request, jsonify, send_from_directory
 from groq import Groq
-import os
-import re
+import os, re
 
-app = Flask(__name__, static_folder=".")
+app    = Flask(__name__, static_folder=".")
 client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
-SYSTEM_PROMPT = """You are an expert algorithm teacher. You ONLY explain algorithms.
-If the user asks about anything other than algorithms or data structures, politely decline
-and ask them to ask about an algorithm.
+# ── SYSTEM PROMPT ───────────────────────────────────────────────────────────
+SYSTEM_PROMPT = """You are an expert algorithm teacher embedded in a chat interface.
+You ONLY discuss algorithms and data structures.
+If the user asks about anything else, politely decline.
 
-When explaining an algorithm, ALWAYS follow this EXACT structured format using XML tags:
+DETECTING MESSAGE TYPE
+----------------------
+You will receive two kinds of messages:
 
+1. EXPLAIN REQUEST  — user wants a full explanation of an algorithm.
+   Respond with the full structured XML format below.
+
+2. FOLLOW-UP / DOUBT — user is asking a question or clarifying something
+   about an algorithm already discussed (e.g. "why is the time complexity O(n log n)?",
+   "what happens if the array is already sorted?", "can you re-explain step 3?").
+   Respond with plain conversational text — NO XML tags needed.
+   Keep it clear, friendly, and concise. Use ASCII diagrams if helpful.
+
+FULL EXPLANATION FORMAT (only for explain requests):
+-----------------------------------------------------
 <theory>
-Explain the theory, intuition, time/space complexity, and use-cases in clear prose.
+Theory, intuition, time/space complexity, and use-cases in clear prose.
 </theory>
 
 <example_intro>
-Briefly introduce the concrete example you will walk through.
+One sentence introducing the concrete example you'll walk through.
 </example_intro>
 
 <steps>
 <step>
-<title>Step title here</title>
-<visual>ASCII art or text visualization showing the state at this step</visual>
-<explanation>Clear explanation of what is happening in this step</explanation>
+<title>Step title</title>
+<visual>ASCII diagram showing state at this step</visual>
+<explanation>What is happening here</explanation>
 </step>
 </steps>
 
 <summary>
-A brief summary of what we learned and key takeaways.
+Brief summary and key takeaways.
 </summary>
 
-Rules:
-- Always include at least 4 steps
-- Keep visuals as clean ASCII diagrams using characters like [], |, ->, ^, *, etc.
-- Each step must be self-contained and show clear progress
-- Do NOT use markdown inside the XML tags"""
+RULES:
+- Always include at least 4 steps in full explanations
+- ASCII visuals use [], |, ->, ^, *, +, - characters only
+- No markdown inside XML tags
+- For follow-ups: reply in plain text, warm and concise"""
 
-
+# ── PARSERS ─────────────────────────────────────────────────────────────────
 def extract_tag(text, tag):
-    pattern = rf"<{tag}>(.*?)</{tag}>"
-    match = re.search(pattern, text, re.DOTALL)
-    return match.group(1).strip() if match else ""
-
+    m = re.search(rf"<{tag}>(.*?)</{tag}>", text, re.DOTALL)
+    return m.group(1).strip() if m else ""
 
 def extract_steps(text):
-    steps_raw = re.findall(r"<step>(.*?)</step>", text, re.DOTALL)
-    steps = []
-    for s in steps_raw:
-        steps.append({
-            "title": extract_tag(s, "title"),
-            "visual": extract_tag(s, "visual"),
+    return [
+        {
+            "title":       extract_tag(s, "title"),
+            "visual":      extract_tag(s, "visual"),
             "explanation": extract_tag(s, "explanation")
-        })
-    return steps
+        }
+        for s in re.findall(r"<step>(.*?)</step>", text, re.DOTALL)
+    ]
 
+def is_structured(text):
+    return "<theory>" in text and "<steps>" in text
 
 def parse_response(text):
-    return {
-        "theory": extract_tag(text, "theory"),
-        "example_intro": extract_tag(text, "example_intro"),
-        "steps": extract_steps(text),
-        "summary": extract_tag(text, "summary"),
-        "raw": text
-    }
+    if is_structured(text):
+        return {
+            "type":         "explanation",
+            "theory":       extract_tag(text, "theory"),
+            "example_intro":extract_tag(text, "example_intro"),
+            "steps":        extract_steps(text),
+            "summary":      extract_tag(text, "summary"),
+        }
+    return {"type": "followup", "text": text}
 
-
+# ── ROUTES ──────────────────────────────────────────────────────────────────
 @app.route("/")
 def index():
     return send_from_directory(".", "index.html")
 
+@app.route("/chat", methods=["POST"])
+def chat():
+    body    = request.json
+    message = body.get("message", "").strip()
+    history = body.get("history", [])      # full conversation history from client
 
-@app.route("/explain", methods=["POST"])
-def explain():
-    data = request.json
-    algorithm = data.get("algorithm", "").strip()
-    history = data.get("history", [])
-
-    if not algorithm:
-        return jsonify({"error": "No algorithm provided"}), 400
+    if not message:
+        return jsonify({"error": "Empty message"}), 400
 
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
         *history,
-        {"role": "user", "content": f"Please explain the following algorithm: {algorithm}"}
+        {"role": "user", "content": message}
     ]
 
     try:
-        response = client.chat.completions.create(
+        resp = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=messages,
             max_tokens=4096,
             temperature=0.7,
         )
-        raw = response.choices[0].message.content
+        raw    = resp.choices[0].message.content
         parsed = parse_response(raw)
-        return jsonify({"success": True, "data": parsed, "raw": raw})
-
+        parsed["raw"] = raw
+        return jsonify({"success": True, "data": parsed})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
 if __name__ == "__main__":
-    app.run(debug=True)
+    print("\n🤖 AlgoBot running → http://localhost:5000\n")
+    app.run(debug=True, port=5000)
